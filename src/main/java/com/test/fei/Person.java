@@ -17,12 +17,12 @@ public class Person {
 
 
     public static class Cat {
-        public String kind;
+//        public String kind;
         public String name;
-        public Integer age;
-        public Boolean isBad;
-        public Dog dog;
-//        public Cat son;
+//        public Integer age;
+//        public Boolean isBad;
+//        public Dog dog;
+        public Cat son;
 
     }
 

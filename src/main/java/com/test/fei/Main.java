@@ -12,15 +12,17 @@ public class Main {
     public static void main(String[] args) throws Exception {
 
         Person person = new Person();
-        reflection(person);
+        reflection(new Person.Cat());
         System.out.println(new Gson().toJson(person));
 
     }
 
     private static Object reflection(Object object) throws Exception {
-        Class cls = object.getClass();
-        String rootPackage = cls.getPackage().getName();
-        Field[] fields = cls.getDeclaredFields();
+        Class rootClass = object.getClass();
+        String rootPackage = rootClass.getPackage().getName();
+
+
+        Field[] fields = rootClass.getDeclaredFields();
         for (Field field : fields) {
             field.setAccessible(true);
             String name = field.getName();
@@ -54,14 +56,22 @@ public class Main {
                     field.set(object, Arrays.asList(1, 2));
                 } else if (typeNameT.equals("java.lang.Long")) {
                     field.set(object, Arrays.asList(1L, 2L));
-                }else if (typeNameT.equals("java.lang.Boolean")) {
+                } else if (typeNameT.equals("java.lang.Boolean")) {
                     field.set(object, Arrays.asList(false, true));
-                }  else {
+                } else {
+                    //这里有循环嵌套 Person有List<Person>类型的变量
+                    if (typeName.equals(rootClass.getName())) {
+
+                    }
                     System.out.println(typeNameT);
-                    field.set(object,Arrays.asList(reflection(Class.forName(typeNameT).newInstance())));
+                    field.set(object, Arrays.asList(reflection(Class.forName(typeNameT).newInstance())));
                 }
             }
             if (typeName.startsWith("com")) {
+                //这里有循环嵌套 Person有Person类型的变量
+                if (typeName.equals(rootClass.getName())) {
+
+                }
                 field.set(object, reflection(Class.forName(typeName).newInstance()));
             }
         }
