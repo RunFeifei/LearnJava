@@ -12,14 +12,17 @@ public class Main {
     public static void main(String[] args) throws Exception {
 
         Person person = new Person();
-        reflection(new Person.Cat());
+        reflection(person, person.getClass().getName(), 0);
         System.out.println(new Gson().toJson(person));
 
     }
 
-    private static Object reflection(Object object) throws Exception {
+    private static Object reflection(Object object, final String reflectClassName, int deep) throws Exception {
         Class rootClass = object.getClass();
         String rootPackage = rootClass.getPackage().getName();
+        if (deep > 1) {
+            return object;
+        }
 
 
         Field[] fields = rootClass.getDeclaredFields();
@@ -60,19 +63,21 @@ public class Main {
                     field.set(object, Arrays.asList(false, true));
                 } else {
                     //这里有循环嵌套 Person有List<Person>类型的变量
-                    if (typeName.equals(rootClass.getName())) {
-
-                    }
+                    boolean isNested = typeNameT.equals(rootClass.getName()) && typeNameT.equals(reflectClassName);
                     System.out.println(typeNameT);
-                    field.set(object, Arrays.asList(reflection(Class.forName(typeNameT).newInstance())));
+                    if (isNested) {
+                        deep++;
+                    }
+                    field.set(object, Arrays.asList(reflection(Class.forName(typeNameT).newInstance(), typeNameT, deep)));
                 }
             }
             if (typeName.startsWith("com")) {
                 //这里有循环嵌套 Person有Person类型的变量
-                if (typeName.equals(rootClass.getName())) {
-
+                boolean isNested = typeName.equals(rootClass.getName()) && typeName.equals(reflectClassName);
+                if (isNested) {
+                    deep++;
                 }
-                field.set(object, reflection(Class.forName(typeName).newInstance()));
+                field.set(object, reflection(Class.forName(typeName).newInstance(), typeName, deep));
             }
         }
         return object;
